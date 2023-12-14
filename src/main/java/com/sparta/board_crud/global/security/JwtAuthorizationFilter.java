@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -29,9 +30,10 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String tokenValue = jwtUtil.substringToken(request);
+        String tokenValue = jwtUtil.getTokenFromRequest(request);
 
-        if(Objects.nonNull(tokenValue)){
+        if(StringUtils.hasText(tokenValue)){
+            tokenValue = jwtUtil.substringToken(tokenValue);
             if(jwtUtil.validateToken(tokenValue)){
                 Claims info = jwtUtil.getUserInfoFromToken(tokenValue);
                 String username = info.getSubject();
