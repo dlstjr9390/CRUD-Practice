@@ -72,7 +72,7 @@ public class UserService {
 
             try {
                 if(passwordEncoder.matches(password, user.getPassword())){
-                    jwtUtil.addJwtToCookies(jwtUtil.createToken(user.getEmail(),user.getUserRole()),response);
+                    jwtUtil.addJwtToCookies(jwtUtil.createToken(user.getUsername(),user.getUserRole()),response);
                     return new LoginResponseDto(user, HttpStatus.OK);
                 } else{
                     throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
