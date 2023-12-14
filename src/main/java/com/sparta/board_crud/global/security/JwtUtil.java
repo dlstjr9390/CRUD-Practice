@@ -72,18 +72,18 @@ public class JwtUtil {
         }
     }
 
-    public String substringToken(HttpServletRequest request){
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)){
-            return  bearerToken.substring(7);
+    public String substringToken(String tokenValue){
+        if(StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)){
+            return  tokenValue.substring(7);
         }
-        return null;
+        throw new NullPointerException("Not Found Token");
     }
 
     public boolean validateToken(String token){
 
         try{
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return true;
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
             logger.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
         } catch (ExpiredJwtException e) {
