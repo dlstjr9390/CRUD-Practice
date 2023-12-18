@@ -2,11 +2,16 @@ package com.sparta.board_crud.post.service;
 
 import com.sparta.board_crud.post.dto.PostListResponseDto;
 import com.sparta.board_crud.post.dto.PostRequestDto;
+import com.sparta.board_crud.post.dto.PostResponseDto;
 import com.sparta.board_crud.post.entity.Post;
 import com.sparta.board_crud.post.repository.PostRepository;
 import com.sparta.board_crud.user.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;
 
@@ -36,12 +41,51 @@ public class PostService {
         return "게시물 생성 완료";
     }
 
-    public List<PostListResponseDto> getPostList() {
-        List<Post> postList = postRepository.findAllByOrderByCreatedAtDesc();
-        List<PostListResponseDto> postListResponseDtoList = postList.stream()
-                .map(PostListResponseDto::new)
-                .toList();
+    public List<PostListResponseDto> getPostList(int page, int size, String sortBy, boolean isAsc) {
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Post> postList = postRepository.findAll(pageable);
+
+        List<PostListResponseDto> postListResponseDtoList =  postList.map(PostListResponseDto::new).getContent();
+
         return postListResponseDtoList;
+    }
+
+    public PostResponseDto getPost(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(
+                ()-> new IllegalArgumentException("게시글을 찾을 수 없습니다.")
+        );
+        return new PostResponseDto(post);
+    }
+
+    @Transactional
+    public String updatePost(Long id, PostRequestDto postRequestDto,User user) {
+        Post post = postRepository.findById(id).orElseThrow(
+                ()-> new IllegalArgumentException("게시글을 찾을 수 없습니다.")
+        );
+
+        if(!post.getUser().getUserId().equals(user.getUserId())){
+            throw new IllegalArgumentException("본인이 작성한 글만 수정이 가능합니다.");
+        }
+        post.update(postRequestDto);
+
+        return "게시물 수정 완료";
+    }
+
+    @Transactional
+    public String deletePost(Long id, User user) {
+        Post post = postRepository.findById(id).orElseThrow(
+                ()-> new IllegalArgumentException("게시글을 찾을 수 없습니다.")
+        );
+
+        if(!post.getUser().getUserId().equals(user.getUserId())){
+            throw new IllegalArgumentException("본인이 작성한 글만 삭제가 가능합니다.");
+        }
+        postRepository.delete(post);
+
+        return "게시물 삭제 완료";
     }
 
     public LinkedHashMap<String, String> refineErrors(Errors errors){
@@ -50,5 +94,4 @@ public class PostService {
 
         return error;
     }
-
 }
