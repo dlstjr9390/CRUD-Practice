@@ -33,4 +33,8 @@ public class Post extends Timestamp {
         this.user = user;
     }
 
+    public void update(PostRequestDto postRequestDto) {
+        this.title = postRequestDto.getTitle();
+        this.content = postRequestDto.getContent();
+    }
 }
