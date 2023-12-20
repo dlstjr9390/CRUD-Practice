@@ -1,5 +1,8 @@
 package com.sparta.board_crud.post.service;
 
+import com.sparta.board_crud.comment.dto.CommentResponseDto;
+import com.sparta.board_crud.comment.entity.Comment;
+import com.sparta.board_crud.comment.repository.CommentRepository;
 import com.sparta.board_crud.post.dto.PostListResponseDto;
 import com.sparta.board_crud.post.dto.PostRequestDto;
 import com.sparta.board_crud.post.dto.PostResponseDto;
@@ -15,15 +18,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;
 
-import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public String createPost(PostRequestDto postRequestDto, User user) {
@@ -48,16 +53,17 @@ public class PostService {
 
         Page<Post> postList = postRepository.findAll(pageable);
 
-        List<PostListResponseDto> postListResponseDtoList =  postList.map(PostListResponseDto::new).getContent();
-
-        return postListResponseDtoList;
+        return postList.map(PostListResponseDto::new).getContent();
     }
 
-    public PostResponseDto getPost(Long id) {
+    public PostResponseDto getPost(Long id, int page, int size, String sortBy, Boolean isAsc) {
         Post post = postRepository.findById(id).orElseThrow(
                 ()-> new IllegalArgumentException("게시글을 찾을 수 없습니다.")
         );
-        return new PostResponseDto(post);
+
+        List<CommentResponseDto> commentResponseDtoList = getComments(id,page,size,sortBy,isAsc);
+
+        return new PostResponseDto(post,commentResponseDtoList);
     }
 
     @Transactional
@@ -86,6 +92,16 @@ public class PostService {
         postRepository.delete(post);
 
         return "게시물 삭제 완료";
+    }
+
+    public List<CommentResponseDto> getComments(Long id, int page, int size, String sortBy, Boolean isAsc){
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Comment> commentList = commentRepository.findAllByPostId(id,pageable);
+
+        return commentList.map(CommentResponseDto::new).getContent();
     }
 
     public LinkedHashMap<String, String> refineErrors(Errors errors){
