@@ -1,14 +1,18 @@
 package com.sparta.board_crud.post.controller;
 
+import com.sparta.board_crud.comment.dto.CommentResponseDto;
+import com.sparta.board_crud.comment.service.CommentService;
 import com.sparta.board_crud.post.dto.PostListResponseDto;
 import com.sparta.board_crud.post.dto.PostRequestDto;
 import com.sparta.board_crud.post.dto.PostResponseDto;
+import com.sparta.board_crud.post.entity.Post;
 import com.sparta.board_crud.post.service.PostService;
 import com.sparta.board_crud.user.security.UserDetailsImpl;
 import jakarta.validation.Valid;
 import jdk.jfr.Frequency;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +27,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final CommentService commentService;
 
     @PostMapping("")
     public ResponseEntity<?> createPost(@Valid @RequestBody PostRequestDto postRequestDto,
@@ -41,17 +46,21 @@ public class PostController {
 
     @GetMapping("")
     public List<PostListResponseDto> getPostList(@RequestParam("page") int page,
-                                                 @RequestParam("size") int size,
-                                                 @RequestParam("sortBy") String sortBy,
-                                                 @RequestParam("isAsc") boolean isAsc
+                                  @RequestParam("size") int size,
+                                  @RequestParam("sortBy") String sortBy,
+                                  @RequestParam("isAsc") boolean isAsc
                                                  ){
         return postService.getPostList(page,size,sortBy,isAsc);
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<?> getPost(@PathVariable(name = "postId") Long id){
+    public ResponseEntity<?> getPost(@PathVariable(name = "postId") Long id,
+                                     @RequestParam("page") int page,
+                                     @RequestParam("size") int size,
+                                     @RequestParam("sortBy") String sortBy,
+                                     @RequestParam("isAsc") boolean isAsc){
         try {
-            return ResponseEntity.ok(postService.getPost(id));
+            return ResponseEntity.ok(postService.getPost(id,page,size,sortBy,isAsc));
         } catch (IllegalArgumentException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
