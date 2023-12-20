@@ -43,8 +43,11 @@ public class WebSecurityConfig {
         httpSecurity.authorizeHttpRequests((authorizeHttpRequests)->
                 authorizeHttpRequests
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                        .requestMatchers(HttpMethod.POST,"/api/posts/").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/users/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/users/login").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/comments/**").permitAll()
+                        .anyRequest().authenticated()
 
 
         );
