@@ -1,5 +1,6 @@
 package com.sparta.board_crud.post.entity;
 
+import com.sparta.board_crud.comment.entity.Comment;
 import com.sparta.board_crud.global.common.Timestamp;
 import com.sparta.board_crud.post.dto.PostRequestDto;
 import com.sparta.board_crud.user.entity.User;
@@ -7,6 +8,9 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -26,6 +30,10 @@ public class Post extends Timestamp {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "post")
+    private List<Comment> commentList = new ArrayList<>();
+
 
     public Post(PostRequestDto postRequestDto, User user){
         this.title = postRequestDto.getTitle();
